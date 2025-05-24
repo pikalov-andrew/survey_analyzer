@@ -3,6 +3,29 @@ import os
 
 
 def load_config(config_path="src/config.json"):
+    """
+    Загружает конфигурационный файл JSON. Если файл отсутствует, создает его с настройками по умолчанию.
+    Проверяет наличие обязательных параметров и корректность их типов.
+
+    Параметры:
+    config_path (str): Путь к конфигурационному файлу. По умолчанию "src/config.json" [[1]].
+
+    Возвращаемое значение:
+    dict: Словарь с параметрами конфигурации, включая:
+      - ignored_codes (list): Список игнорируемых кодов (по умолчанию ["999"]).
+      - needed_answers_count (int): Требуемое количество ответов (по умолчанию 600).
+      - static_error (float): Статистическая ошибка (по умолчанию 0.005).
+      - strong_pairs_coefficient (float): Пороговое значение коэффициента корреляции между вопросами (по умолчанию 0.5).
+      - data_dir (str): Каталог данных (по умолчанию "data").
+      - question_data_ext (str): Расширение файлов вопросов (по умолчанию ".anc").
+      - answer_data_ext (list): Расширения файлов ответов (по умолчанию [".opr", ".txt"]).
+      - conditions_ext (str): Расширение файлов условий (по умолчанию ".cnf").
+      - may_repeat (bool): Разрешено ли повторение (по умолчанию False) [[3]][[10]].
+
+    Исключения:
+      - ValueError: Если файл JSON содержит ошибки форматирования.
+      - KeyError: Если отсутствует один из обязательных ключей в конфигурации.
+    """
     if not os.path.exists(config_path):
         default_config = {"ignored_codes": ["999"], "needed_answers_count": 600, "static_error": 0.005,
                           "strong_pairs_coefficient": 0.5, "data_dir": "data", "question_data_ext": ".anc",

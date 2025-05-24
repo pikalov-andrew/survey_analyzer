@@ -15,6 +15,27 @@ logger = logging.getLogger(__name__)
 
 
 def k_mode_clusters(answers, len_questions):
+    """
+        Выполняет кластеризацию методом K-Modes для категориальных данных ответов на вопросы.
+
+        Процесс включает:
+          1. Подготовку данных (обрезка кодов до первых 3-х символов, заполнение пропусков).
+          2. Автоматический подбор оптимального числа кластеров через метрику силуэта.
+          3. Обучение финальной модели кластеризации.
+
+        Параметры:
+          - answers (List[List[str]]): Список ответов, где каждый ответ - список строковых кодов.
+          - len_questions (int): Количество вопросов в анкете (используется для расчета диапазона кластеров).
+
+        Возвращаемое значение:
+          Tuple[pd.DataFrame, int]:
+            - DataFrame с исходными данными и добавленным столбцом "cluster"
+            - Оптимальное число кластеров, выбранное по метрике силуэта
+
+        Логирование:
+          - Информация о ходе подбора кластеров записывается через logger.info
+          - Ошибки вычисления метрики силуэта логируются через log_with_print
+        """
     k_mode_data = [[code[:3] for code in answer] for answer in answers]
     df = pd.DataFrame(k_mode_data)
     df = df.fillna("999")
@@ -38,6 +59,25 @@ def k_mode_clusters(answers, len_questions):
 
 
 def get_strong_pairs(answers, ignored_codes, possible_answers_list, questions, strong_pairs_coefficient):
+    """
+        Выполняет анализ сильных пар вопросов на основе TF-IDF и корреляционных матриц.
+
+        Процесс включает:
+          1. Векторизацию текста ответов с использованием TF-IDF.
+          2. Расчет корреляционной матрицы для выявления взаимосвязей между ответами.
+          3. Расчет корреляционной матрицы для выявления взаимосвязей между вопросами на основе ответов.
+          4. Фильтрацию пар вопросов по порогу коэффициента корреляции.
+
+        Параметры:
+          - answers (List[List[str]]): Список ответов респондентов, где каждый элемент — список кодов ответов.
+          - ignored_codes (List[str]): Коды, которые исключаются из анализа.
+          - possible_answers_list (List[str]): Список допустимых вариантов ответов для привязки к вопросам.
+          - questions (Dict[str, List[Tuple[str, str]]]): Словарь опросника.
+          - strong_pairs_coefficient (float): Порог корреляции для определения "сильных" пар вопросов.
+
+        Возвращаемое значение:
+          - pd.DataFrame: DataFrame с колонками ["Вопрос 1", "Вопрос 2", "Корреляция"], где вопросы представлены их индексами из исходного списка.
+        """
     vectorizer = TfidfVectorizer()
     texts = [" ".join(code[:3] for code in row if code[:3] not in ignored_codes) for row in answers]
     x = vectorizer.fit_transform(texts)
@@ -55,6 +95,20 @@ def get_strong_pairs(answers, ignored_codes, possible_answers_list, questions, s
 
 
 def get_rules(answers):
+    """
+    Генерирует ассоциативные правила из набора ответов с использованием алгоритма FP-Growth.
+
+    Процесс включает:
+      1. Преобразование ответов в бинарную матрицу через TransactionEncoder.
+      2. Поиск частых itemset'ов с минимальной поддержкой 0.01.
+      3. Генерация правил ассоциации с фильтрацией по метрике confidence (минимальный порог 0.01).
+
+    Параметры:
+      - answers (List[List[str]]): Список ответов респондентов, где каждый элемент — список строковых кодов ответов [[6]].
+
+    Возвращаемое значение:
+      - pd.DataFrame: DataFrame с колонками "antecedents" (предпосылки) и "consequents" (следствия), где значения преобразованы из frozenset в строки через функцию extract_value.
+    """
     te = TransactionEncoder()
     te_ary = te.fit(answers).transform(answers)
     df = pd.DataFrame(te_ary, columns=te.columns_)

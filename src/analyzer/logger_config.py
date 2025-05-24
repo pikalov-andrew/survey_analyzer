@@ -2,6 +2,9 @@ import logging
 
 
 def setup_logging():
+    """
+        Настраивает систему логирования для сохранения сообщений в файл с заданным форматом.
+    """
     logging.basicConfig(
         level=logging.INFO,
         filename='reports/analyzer.log',

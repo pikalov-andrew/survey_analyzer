@@ -123,4 +123,11 @@ def main():
         df_synthetic = df_synthetic.applymap(join_if_list)
         metadata = Metadata.detect_from_dataframe(data=df_code_questionnaires)
         evaluate_quality(df_code_questionnaires, df_synthetic, metadata)
+    else:
+        try:
+            save_answers(answers, [])
+            log_with_print("Отчетные данные сгенерированы и находятся в папке /reports.")
+        except TypeError as e:
+            log_with_print(f"Не удалось сохранить отчетные данны .opr. {e}")
+            log_with_print("Данные будут сохранены без текстовых значений")
     return 0

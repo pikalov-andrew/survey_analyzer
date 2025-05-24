@@ -8,6 +8,30 @@ logger = logging.getLogger(__name__)
 
 def validate_questionnaires(answers, possible_answers_list, ignored_codes, question_max_answers,
                             question_min_answers, question_exception_answers, question_required_answers, may_repeat):
+    """
+    Проверяет анкеты на соответствие заданным условиям (мин/макс ответы, исключения, обязательные ответы, дубликаты).
+
+    Процесс включает:
+      1. Проверку уникальности анкет (если may_repeat=False).
+      2. Анализ исключающих условий между ответами.
+      3. Проверку наличия обязательных ответов.
+      4. Контроль минимального и максимального количества ответов на вопросы.
+      5. Формирование списка ошибок с кодами и описаниями.
+
+    Параметры:
+      - answers (List[List[str]]): Список анкет, где каждая анкета — список строковых кодов ответов.
+      - possible_answers_list (List[List[str]]): Список допустимых вариантов ответов для каждого вопроса.
+      - ignored_codes (List[str]): Коды, исключенные из анализа (например, резервные или служебные коды).
+      - question_max_answers (List[int]): Максимальное количество ответов на каждый вопрос.
+      - question_min_answers (List[int]): Минимальное количество ответов на каждый вопрос.
+      - question_exception_answers (Dict[str, List[str]]): Исключающие условия (код ответа -> список исключенных кодов).
+      - question_required_answers (Dict[str, List[str]]): Обязующие условия (код ответа -> список требуемых кодов).
+      - may_repeat (bool): Разрешено ли повторение одинаковых анкет.
+
+    Возвращаемое значение:
+      List[Dict]: Список ошибок в формате {"row_index": индекс строки с ошибками, "errors": [сообщения], "error_code": [коды_ошибок]}.
+      Возвращает 0, если ошибок нет.
+    """
     validation_errors = []
     answers_count = []
     seen_rows = {}
@@ -69,6 +93,34 @@ def validate_questionnaires(answers, possible_answers_list, ignored_codes, quest
 def correct_questionnaires(answers, possible_answers_list, ignored_codes, question_max_answers,
                            question_min_answers, question_exception_answers, question_required_answers, errors,
                            static_error):
+    """
+    Исправляет ошибки в анкетах на основе результатов валидации и статистических данных.
+
+    Процесс включает:
+      1. Обработку ошибок по типам:
+          - Удаление дублирующихся анкет (если may_repeat=False).
+          - Добавление обязательных ответов.
+          - Удаление ненужных и исключенных ответов.
+          - Коррекцию количества ответов (удаление/добавление для соблюдения min/max лимитов).
+      2. Логирование всех изменений: удаленных и добавленных ответов, удаленных анкет.
+      3. Обновление списка анкет после всех исправлений.
+
+    Параметры:
+      answers (List[List[str]]): Список анкет, где каждая анкета — список строковых кодов ответов.
+      possible_answers_list (List[List[str]]): Список допустимых вариантов ответов для каждого вопроса.
+      ignored_codes (List[str]): Коды, исключенные из анализа (например, резервные или служебные коды).
+      question_max_answers (List[int]): Максимальное количество ответов на каждый вопрос.
+      question_min_answers (List[int]): Минимальное количество ответов на каждый вопрос.
+      question_exception_answers (Dict[str, List[str]]): Исключающие условия (код ответа -> список исключенных кодов).
+      question_required_answers (Dict[str, List[str]]): Обязующие условия (код ответа -> список требуемых кодов).
+      errors (List[Dict]): Список ошибок из validate_questionnaires с индексами строк и кодами ошибок.
+      static_error (float): Порог статической ошибки для коррекции частот (используется в get_frequencies).
+
+    Возвращаемое значение:
+      List[List[str]]: Обновлённый список анкет после исправления ошибок:
+        - Удалены дубликаты (если may_repeat=False).
+        - Добавлены/удалены ответы в соответствии с правилами.
+    """
     answers_to_delete = []
     frequencies = get_frequencies(answers, possible_answers_list, static_error)
     for error in errors:
