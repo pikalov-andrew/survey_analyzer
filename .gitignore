@@ -1,0 +1,23 @@
+# Virtual environment
+.venv/
+.idea/
+src/analyzer/__pycache__
+
+# Temporary files
+*.tmp
+*.log
+
+#data and reports
+*.opr
+*.anc
+*.cnf
+*.xls*
+*.txt
+
+!requirements.txt
+
+# Other
+CACHEDIR.TAG
+*.cfg
+*.pyc
+*.spec

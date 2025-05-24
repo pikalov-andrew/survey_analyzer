@@ -1,0 +1,16 @@
+{
+  "ignored_codes": [
+    "999"
+  ],
+  "needed_answers_count": 600,
+  "static_error": 0.005,
+  "strong_pairs_coefficient": 0.5,
+  "data_dir": "data",
+  "question_data_ext": ".anc",
+  "answer_data_ext": [
+    ".opr",
+    ".txt"
+  ],
+  "conditions_ext": ".cnf",
+  "may_repeat": false
+}
